@@ -1,14 +1,19 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using QFamilyForum.Data;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using QFamilyForum.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddHttpClient();
 builder.Services.AddRazorPages();
+builder.Services.AddDbContext<QFamilyForumContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("QFamilyForumContext") ?? throw new InvalidOperationException("Connection string 'QFamilyForumContext' not found.")));
 builder.Services.AddServerSideBlazor();
-builder.Services.AddSingleton<WeatherForecastService>();
-builder.Services.AddSingleton<TodoService>();
+builder.Services.AddScoped<TodoService>();
 
 var app = builder.Build();
 
@@ -28,5 +33,19 @@ app.UseRouting();
 
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
+// its main function is, decouple the URL and the controller
+// app.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}"); // used in the MVC
+app.MapControllers(); // used in API
 
+
+// Initialize the database
+var scopeFactory = app.Services.GetRequiredService<IServiceScopeFactory>();
+using (var scope = scopeFactory.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<QFamilyForumContext>();
+    if(db.Database.EnsureCreated())
+    {
+        SeedData.Initialize(db);
+    }
+}
 app.Run();

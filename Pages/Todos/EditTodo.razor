@@ -1,0 +1,23 @@
+﻿@page "/edit_todo/{todoId}"
+@using QFamilyForum.Data
+@using QFamilyForum.Services
+@inject TodoService service
+
+<h3>EditTodo</h3>
+
+@*<ul>
+    <li>
+        <input placeholder="Title" @bind="todo.Title" type="text"/>
+    </li>
+    <li>
+        <input placeholder="Describe" @bind="todo.Description" type="text" />
+    </li>
+    <li>
+        <input placeholder="End Time" @bind="todo.EndTime" type="datetime" />
+    </li>
+</ul>
+<button @onclick="OnClick">Add todo</button>*@
+
+@code {
+    [Parameter] public string todoId { get; set; }
+}

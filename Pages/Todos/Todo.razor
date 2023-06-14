@@ -1,0 +1,60 @@
+﻿@page "/todo"
+@using QFamilyForum.Data
+@using QFamilyForum.Services
+@inject NavigationManager NavigationManager
+@inject TodoService service
+
+<PageTitle>Todo list</PageTitle>
+
+<h3>Todo Items</h3>
+
+<NavLink class="nav-link" href="new_todo">
+    <span class="oi oi-plus" aria-hidden="true"></span> New Todo
+</NavLink>
+
+@if(todos == null)
+{
+    <p><em>Loading...</em></p>
+} else 
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Description</th>
+                <th>End Time</th>
+                <th>Is Done</th>
+                <th>Edit</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var todo in todos)
+            {
+                <tr>
+                    <td>@todo.Title</td>
+                    <td>@todo.Description</td>
+                    <td>@todo.EndTime</td>
+                    <td>@todo.IsDone</td>
+                    <th>
+                        <button class="btn btn-primary" @onclick="@(()=> OnClick(todo.Id))">Edit</button>
+                    </th>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<TodoItem> todos = new List<TodoItem>();
+
+    // call it every time into this page
+    protected override void OnInitialized()
+    {   
+        Console.WriteLine("initilize Todo Index Page");
+        todos = service.GetTodos();
+    }
+    protected void OnClick(int Id)
+    {
+        NavigationManager.NavigateTo($"edit_todo/{Id}");
+    }
+}

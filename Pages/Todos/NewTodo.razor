@@ -1,0 +1,35 @@
+﻿@page "/new_todo"
+@using QFamilyForum.Data
+@using QFamilyForum.Services
+@inject TodoService service
+
+<h3>New Todo</h3>
+
+<ul>
+    <li>
+        <input placeholder="Title" @bind="new_todo.Title" type="text"/>
+    </li>
+    <li>
+        <input placeholder="Describe" @bind="new_todo.Description" type="text" />
+    </li>
+    <li>
+        <input placeholder="End Time" @bind="new_todo.EndTime" type="datetime" />
+    </li>
+</ul>
+
+<button @onclick="AddNewTodo">Add todo</button>
+
+@code {
+    private TodoItem new_todo = new TodoItem { };
+
+    private void AddNewTodo()
+    {
+        if (new_todo == null)
+        {
+            Console.WriteLine("Can't insert the null as new todo");
+            return;
+        }
+        service.AddTodo(new_todo);
+        new_todo = new TodoItem { };
+    }
+}
