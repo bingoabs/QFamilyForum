@@ -6,9 +6,9 @@ namespace QFamilyForum.Interface
     {
         int NUMBER_OF_ALLLOWED_GUESSES{ get;set;}
         int WORDLE_LENGTH { get;set; }
-        GameState NewGame();
+        void NewGame();
         GameState EnterGuess(string guess);
-        int GetNumberOfGuesses();
         GameGrid GetGameGrid();
+        GameState GetGameState();
     }
 }

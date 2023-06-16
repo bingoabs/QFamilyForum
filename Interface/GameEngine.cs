@@ -6,13 +6,6 @@ namespace QFamilyForum.Interface
     {
         private static int number_of_allowed_guesses = 6;
         private static int wordle_length = 5;
-        private int numberOfGuesses = 0;
-        private GameGrid gameGrid = new GameGrid();
-
-        private string wordle = string.Empty;
-
-        private readonly IWordleGenerator _wordleGenerator;
-
         public int NUMBER_OF_ALLLOWED_GUESSES {
             get => number_of_allowed_guesses; 
             set => number_of_allowed_guesses = value;
@@ -21,211 +14,104 @@ namespace QFamilyForum.Interface
             get => wordle_length;
             set => wordle_length = value;
         }
-
-        public int GetNumberOfGuesses() => numberOfGuesses;
-        public GameGrid GetGameGrid() => gameGrid;
-
+        private string wordle = string.Empty;
+        private GameGrid gameGrid = new GameGrid();
+        private GameState gameState = new GameState();
+        private readonly IWordleGenerator _wordleGenerator;
         public GameEngine(IWordleGenerator wordleGenerator)
         {
             _wordleGenerator = wordleGenerator;
         }
+        public GameGrid GetGameGrid() => gameGrid;
+        public GameState GetGameState() => gameState;
 
-        public GameState NewGame()
+        public void NewGame()
         {
             wordle = _wordleGenerator.GenerateSelectedWordle();
-
             WORDLE_LENGTH = wordle.Length;
-
-            numberOfGuesses = 0;
-
-            gameGrid = new GameGrid()
-            {
-                Guesses = new string[NUMBER_OF_ALLLOWED_GUESSES, WORDLE_LENGTH],
-                IncorrectGuessHintColours = new string[NUMBER_OF_ALLLOWED_GUESSES, WORDLE_LENGTH],
-            };
-
-            return new GameState()
+            gameState = new GameState()
             {
                 IsGameComplete = false,
                 HasPlayerWonGame = false,
-                NumberOfGuesses = numberOfGuesses,
-
+                NumberOfGuesses = 0,
+                ResultMessage = string.Empty,
+                ErrorMessages = new List<string>()
             };
+            gameGrid = new GameGrid()
+            {
+                Guesses = new string[NUMBER_OF_ALLLOWED_GUESSES, WORDLE_LENGTH],
+                GuessHintColours = new string[NUMBER_OF_ALLLOWED_GUESSES, WORDLE_LENGTH],
+            };
+            // should to have a better way to fill the array...
+            for(int i = 0; i < NUMBER_OF_ALLLOWED_GUESSES; i++)
+            {
+                for(int j = 0; j < WORDLE_LENGTH; j++)
+                {
+                    gameGrid.GuessHintColours[i, j] = i == 0 ? GuessHintColor.ToFill : GuessHintColor.NotFill;
+                }
+            }
+        }
+        private bool IsNotNumber(string guess)
+        {
+            return guess.Any(c => !char.IsDigit(c));
         }
 
         public GameState EnterGuess(string guess)
         {
-            if (string.IsNullOrEmpty(guess) || guess.Length != WORDLE_LENGTH)
-            {
-                return GetInvalidGuessEntry(guess);
-            }
+            gameState.NumberOfGuesses += 1;
 
-            string guessResult = string.Empty;
-            IncorrectGuessHints? incorrectGuessHints = null;
+            if (string.IsNullOrEmpty(guess) || guess.Length != WORDLE_LENGTH || IsNotNumber(guess))
+                return GetInvalidGuessEntry(guess);
 
             string guessInLowerCase = guess.ToLower();
 
-            numberOfGuesses++;
+            UpdateGameGrid(gameState.NumberOfGuesses - 1, guessInLowerCase);
 
             if (guessInLowerCase.Equals(wordle))
-            {
                 return PlayerWonGame(guessInLowerCase);
-            }
-            else
-            {
-                if (numberOfGuesses == NUMBER_OF_ALLLOWED_GUESSES)
-                {
-                    return GameOver(guessInLowerCase);
-                }
-                else
-                {
-                    incorrectGuessHints = ManageIncorrectGuessHints(guessInLowerCase, wordle);
-                }
-            }
-
-            return new GameState()
-            {
-                IsGameComplete = false,
-                HasPlayerWonGame = false,
-                NumberOfGuesses = numberOfGuesses,
-                GuessResult = new GuessResult()
-                {
-                    IsGuessSuccessful = true,
-                    IncorrectGuessHints = incorrectGuessHints,
-                    ResultMessage = guessResult,
-                },
-            };
+            if(gameState.NumberOfGuesses == NUMBER_OF_ALLLOWED_GUESSES)
+                return GameOver(guessInLowerCase);
+            // game continue
+            return ContuinueGame(guessInLowerCase);
         }
 
         private GameState PlayerWonGame(string guess)
         {
-            string es = numberOfGuesses > 1 ? "es" : string.Empty;
-
-            var letterPositionsInGuess = new List<int>();
-
-            for (int i = 0; i < WORDLE_LENGTH; i++)
-            {
-                letterPositionsInGuess.Add(i);
-            }
-
-            return new GameState()
-            {
-                IsGameComplete = true,
-                HasPlayerWonGame = true,
-                NumberOfGuesses = numberOfGuesses,
-                GuessResult = new GuessResult()
-                {
-                    IsGuessSuccessful = true,
-                    IncorrectGuessHints = ManageIncorrectGuessHints(guess, wordle),
-                    ResultMessage = $"Congratulations you correctly guessed the selected wordle of {wordle} in {numberOfGuesses} guess{es}",
-                },
-            };
+            gameState.IsGameComplete = true;
+            gameState.HasPlayerWonGame = true;
+            gameState.ResultMessage = $"Congratulations you correctly guessed the selected wordle of {wordle} in {gameState.NumberOfGuesses} guess{(gameState.NumberOfGuesses > 1 ? "es" : "")}";
+            return gameState;
         }
 
         private GameState GameOver(string guess)
         {
-            return new GameState()
-            {
-                IsGameComplete = true,
-                HasPlayerWonGame = false,
-                NumberOfGuesses = numberOfGuesses,
-                GuessResult = new GuessResult()
-                {
-                    IsGuessSuccessful = false,
-                    IncorrectGuessHints = ManageIncorrectGuessHints(guess, wordle),
-                    ResultMessage = $"Unlucky you didn't guess the selected wordle of {wordle}",
-                },
-            };
+            gameState.IsGameComplete = true;
+            gameState.HasPlayerWonGame = false;
+            gameState.ResultMessage = $"Unlucky you didn't guess the selected wordle of {wordle}";
+            return gameState;
         }
 
-        private IncorrectGuessHints ManageIncorrectGuessHints(string guess, string worldle)
+        private GameState ContuinueGame(string guessInLowerCase)
         {
-            var incorrectGuessHints = GetIncorrectGuessHints(guess, wordle);
-            ApplyIncorrectGuessHints(incorrectGuessHints);
-
-            return incorrectGuessHints;
-        }
-
-        private IncorrectGuessHints GetIncorrectGuessHints(string guess, string worldle)
-        {
-            var lettersPresentAndInCorrectPosition = new List<char>();
-            var lettersPresentButNotInCorrectPosition = new List<char>();
-            var lettersNotPresentInGuess = new List<char>();
-            var letterPositionsPresentAndInCorrectPosition = new List<int>();
-            var letterPositionsPresentButNotInCorrectPosition = new List<int>();
-            var letterPositionsNotPresentInGuess = new List<int>();
-
-            int letterIndex = 0;
-
-            foreach (var letter in guess)
+            for (int idx = 0; idx < guessInLowerCase.Length; idx++)
             {
-                bool letterPresentInWordle = wordle.Contains(letter);
-                bool letterPresentInWordleAndInCorrectPosition = guess[letterIndex].Equals(wordle[letterIndex]);
-
-                if (letterPresentInWordleAndInCorrectPosition)
-                {
-                    lettersPresentAndInCorrectPosition.Add(letter);
-                    letterPositionsPresentAndInCorrectPosition.Add(letterIndex);
-                }
-                else if (letterPresentInWordle)
-                {
-                    lettersPresentButNotInCorrectPosition.Add(letter);
-                    letterPositionsPresentButNotInCorrectPosition.Add(letterIndex);
-                }
+                gameGrid.GuessHintColours[gameState.NumberOfGuesses, idx] = GuessHintColor.ToFill;
+            }
+            return gameState;
+        }
+        private void UpdateGameGrid(int current_line_index, string guessInLowerCase)
+        {
+            for(int idx = 0; idx < guessInLowerCase.Length; idx++)
+            {
+                gameGrid.Guesses[current_line_index, idx] = guessInLowerCase[idx].ToString();
+                if(guessInLowerCase[idx] == wordle[idx])
+                    gameGrid.GuessHintColours[current_line_index, idx] = GuessHintColor.Correct;
+                else if(guessInLowerCase[idx] < wordle[idx])
+                    gameGrid.GuessHintColours[current_line_index, idx] = GuessHintColor.Lower;
                 else
-                {
-                    lettersNotPresentInGuess.Add(letter);
-                    letterPositionsNotPresentInGuess.Add(letterIndex);
-                }
-
-                letterIndex++;
-            }
-
-            return new IncorrectGuessHints()
-            {
-                LettersPresentInGuessAndInCorrectPosition = lettersPresentAndInCorrectPosition,
-                LettersPresentInGuessButNotInCorrectPosition = lettersPresentButNotInCorrectPosition,
-                LettersNotPresentInGuess = lettersNotPresentInGuess,
-                LetterPositionsPresentInGuessAndInCorrectPosition = letterPositionsPresentAndInCorrectPosition,
-                LetterPositionsPresentInGuessButNotInCorrectPosition = letterPositionsPresentButNotInCorrectPosition,
-                LetterPositionsNotPresentInGuess = letterPositionsNotPresentInGuess,
-            };
-        }
-
-        private void ApplyIncorrectGuessHints(IncorrectGuessHints incorrectGuessHints)
-        {
-            if (incorrectGuessHints != null)
-            {
-                gameGrid.IncorrectGuessHintColours = ApplyIncorrectGuessHintColours(
-                                                    gameGrid.IncorrectGuessHintColours
-                                                    , incorrectGuessHints.LetterPositionsPresentInGuessAndInCorrectPosition
-                                                    , "background-color: #0080009c;");
-
-                gameGrid.IncorrectGuessHintColours = ApplyIncorrectGuessHintColours(
-                                                        gameGrid.IncorrectGuessHintColours
-                                                        , incorrectGuessHints.LetterPositionsPresentInGuessButNotInCorrectPosition
-                                                        , "background-color: yellow;");
-
-                gameGrid.IncorrectGuessHintColours = ApplyIncorrectGuessHintColours(
-                                                        gameGrid.IncorrectGuessHintColours
-                                                        , incorrectGuessHints.LetterPositionsNotPresentInGuess
-                                                        , "background-color: #80808078;");
+                    gameGrid.GuessHintColours[current_line_index, idx] = GuessHintColor.Higher;
             }
         }
-
-        private string[,] ApplyIncorrectGuessHintColours(string[,] incorrectGuessHintColours, List<int> letterPositions, string backgroundColour)
-        {
-            if (letterPositions.Count > 0)
-            {
-                foreach (int letterPosition in letterPositions)
-                {
-                    incorrectGuessHintColours[GetNumberOfGuesses() - 1, letterPosition] = backgroundColour;
-                }
-            }
-
-            return incorrectGuessHintColours;
-        }
-
         private GameState GetInvalidGuessEntry(string guess)
         {
             var errors = new List<string>();
@@ -239,23 +125,13 @@ namespace QFamilyForum.Interface
                 errors.Add($"The guess entered has not got enough letters.  Guess should have {WORDLE_LENGTH} letters");
             }
 
-            if (guess.Any(char.IsDigit))
+            if (IsNotNumber(guess))
             {
-                errors.Add("The guess entered is invalid as it contains numbers");
+                errors.Add("The guess entered is invalid as it is not numbers");
             }
+            gameState.ErrorMessages = errors;
 
-            return new GameState()
-            {
-                IsGameComplete = false,
-                HasPlayerWonGame = false,
-                NumberOfGuesses = numberOfGuesses,
-                GuessResult = new GuessResult()
-                {
-                    IsGuessSuccessful = false,
-                    IncorrectGuessHints = null,
-                    ErrorMessages = errors,
-                },
-            };
+            return gameState;
         }
     }
 }

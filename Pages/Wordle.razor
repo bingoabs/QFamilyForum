@@ -7,7 +7,7 @@
 <span class="game_result_message">猜数字游戏</span>
 <span class="game_result_message"><strong class="text_red">红色</strong>表示数字过大;</span>
 <span class="game_result_message"><strong class="text_green">绿色</strong>表示数字正确;</span>
-<span class="game_result_message"><strong class="text_grey">灰色</strong>表示数字较小</span>
+<span class="game_result_message"><strong class="text_purple">紫色</strong>表示数字较小</span>
 
 <table class="game-grid">
     @for (int guessIndex = 0; guessIndex < gameEngine.NUMBER_OF_ALLLOWED_GUESSES; guessIndex++)
@@ -19,7 +19,7 @@
                 int colIndex = letterIndex;
 
                 <td>
-                    @if(!IsGameComplete && guessIndex == gameEngine.GetNumberOfGuesses())
+                    @if(!IsGameComplete && guessIndex == gameState.NumberOfGuesses)
                     {
                         <input id="@GetTextBoxID(rowIndex, colIndex)" @bind-value="@gameGrid.Guesses[rowIndex, colIndex]" MaxLength="1" type="text" class="guess_letter_entry" style="@GetPlayerColour(rowIndex, colIndex)"  />
                     }
@@ -51,9 +51,9 @@
     </tr>
 </table>
 
-@if (gameState != null && gameState.GuessResult != null)
+@if (gameState != null && gameState.ResultMessage != string.Empty)
 {
-    <span class="game_result_message">@gameState.GuessResult.ResultMessage</span>
+    <span class="game_result_message">@gameState.ResultMessage</span>
 }
 
 <ErrorMessage ErrorMessages="errorMessages" />
@@ -61,17 +61,27 @@
 @code {
     private GameState gameState = new GameState();
     private GameGrid gameGrid = new GameGrid();
-
-    private List<string> errorMessages;
-
-    private string GetPlayerColour(int rowIndex, int colIndex) => gameGrid.IncorrectGuessHintColours[rowIndex, colIndex];
     private bool IsGameComplete => gameState != null && gameState.IsGameComplete;
-    private string GetTextBoxID(int rowIndex, int colIndex) => $"{rowIndex},{colIndex}";
-    private string GetGuessLetter(int rowIndex, int colIndex) => gameGrid.Guesses[rowIndex, colIndex];
+    private List<string> errorMessages;
 
     protected override void OnInitialized()
     {
         NewGame();
+    }
+    private void NewGame()
+    {
+        gameEngine.NewGame();
+        gameState = gameEngine.GetGameState();
+        gameGrid = gameEngine.GetGameGrid();
+    }
+    private string GetPlayerColour(int rowIndex, int colIndex)
+    {
+        return gameGrid.GuessHintColours[rowIndex, colIndex];
+    }
+ 
+    private string GetTextBoxID(int rowIndex, int colIndex)
+    {
+        return $"{rowIndex},{colIndex}";
     }
 
     private void EnterGuess()
@@ -80,19 +90,13 @@
 
         for(int colIndex=0; colIndex < gameEngine.WORDLE_LENGTH;  colIndex++)
         {
-            currentGuess += gameGrid.Guesses[gameEngine.GetNumberOfGuesses(), colIndex];
+            currentGuess += gameGrid.Guesses[gameState.NumberOfGuesses, colIndex];
         }
 
         gameState = gameEngine.EnterGuess(currentGuess);
 
-        errorMessages = gameState?.GuessResult?.ErrorMessages;
+        errorMessages = gameState.ErrorMessages;
 
-        gameGrid = gameEngine.GetGameGrid();
-    }
-
-    private void NewGame()
-    {
-        gameState = gameEngine.NewGame();
         gameGrid = gameEngine.GetGameGrid();
     }
 }
