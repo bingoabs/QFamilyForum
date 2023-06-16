@@ -1,23 +1,48 @@
 ﻿@page "/edit_todo/{todoId}"
 @using QFamilyForum.Data
 @using QFamilyForum.Services
+@inject NavigationManager NavigationManager
 @inject TodoService service
 
 <h3>EditTodo</h3>
 
-@*<ul>
-    <li>
-        <input placeholder="Title" @bind="todo.Title" type="text"/>
-    </li>
-    <li>
-        <input placeholder="Describe" @bind="todo.Description" type="text" />
-    </li>
-    <li>
-        <input placeholder="End Time" @bind="todo.EndTime" type="datetime" />
-    </li>
-</ul>
-<button @onclick="OnClick">Add todo</button>*@
+@if(todo == null)
+{
+    <p>Loading</p>
+} else
+{
+    <ul>
+        <li>
+            <input placeholder="Title" @bind="todo.Title" type="text"/>
+        </li>
+        <li>
+            <input placeholder="Describe" @bind="todo.Description" type="text" />
+        </li>
+        <li>
+            <input placeholder="End Time" @bind="todo.EndTime" type="datetime" />
+        </li>
+    </ul>
+}
+<button @onclick="OnClick">Update todo</button>
 
 @code {
-    [Parameter] public string todoId { get; set; }
+    [Parameter] public string todoId { get; set; } = "";
+    private TodoItem? todo { get; set; }
+    protected override void OnInitialized()
+    {
+        Console.WriteLine("initilize Todo Edit Page");
+        todo = service.GetTodo(todoId);
+    }
+    private void OnClick()
+    {
+        Console.WriteLine("update todo");
+        if(todo == null)
+        {
+            Console.WriteLine("todo is null");
+        } else
+        {
+            service.UpdateTodo(todo);
+        }
+        NavigationManager.NavigateTo($"todo");
+    }
 }

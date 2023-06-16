@@ -17,7 +17,7 @@ namespace QFamilyForum.Services
             _httpClient = httpClient;
             _navigationManager = navigationManager;
             // when migrate the code, and show error, need to consider the difference between environments
-            var result = httpClient.GetFromJsonAsync<List<TodoItem>>(_navigationManager.BaseUri + "api/TodoItems").Result;
+            var result = _httpClient.GetFromJsonAsync<List<TodoItem>>(_navigationManager.BaseUri + "api/TodoItems").Result;
             if(result != null)
             {
                 todos = result;
@@ -27,6 +27,11 @@ namespace QFamilyForum.Services
         public List<TodoItem> GetTodos()
         {
             return todos;
+        }
+
+        public TodoItem? GetTodo(string Id)
+        {
+            return _httpClient.GetFromJsonAsync<TodoItem>(_navigationManager.BaseUri + $"api/TodoItems/{Id}").Result;
         }
         public void AddTodo(TodoItem item)
         {

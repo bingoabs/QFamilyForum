@@ -1,12 +1,13 @@
 ﻿@page "/new_todo"
 @using QFamilyForum.Data
 @using QFamilyForum.Services
+@inject NavigationManager NavigationManager
 @inject TodoService service
 
 <h3>New Todo</h3>
 
 <ul>
-    <li>
+    <li class="">
         <input placeholder="Title" @bind="new_todo.Title" type="text"/>
     </li>
     <li>
@@ -31,5 +32,6 @@
         }
         service.AddTodo(new_todo);
         new_todo = new TodoItem { };
+        NavigationManager.NavigateTo($"todo");
     }
 }

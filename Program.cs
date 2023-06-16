@@ -4,8 +4,16 @@ using QFamilyForum.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using QFamilyForum.Services;
+using QFamilyForum.Interface;
 
 var builder = WebApplication.CreateBuilder(args);
+
+List<string>? possibleWordlesOrNull = builder.Configuration.GetSection("PossibleWordles").Get<List<string>>();
+if(possibleWordlesOrNull == null)
+{
+    throw new InvalidOperationException("No possible wordles found in configuration.");
+}
+List<string> possibleWordles = possibleWordlesOrNull;
 
 // Add services to the container.
 builder.Services.AddHttpClient();
@@ -13,7 +21,11 @@ builder.Services.AddRazorPages();
 builder.Services.AddDbContext<QFamilyForumContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("QFamilyForumContext") ?? throw new InvalidOperationException("Connection string 'QFamilyForumContext' not found.")));
 builder.Services.AddServerSideBlazor();
+
 builder.Services.AddScoped<TodoService>();
+builder.Services.AddScoped(possibleWordles);
+builder.Services.AddScoped<IGameEngine, GameEngine>();
+builder.Services.AddScoped<IWordleGenerator, WordleGenerator>();
 
 var app = builder.Build();
 
