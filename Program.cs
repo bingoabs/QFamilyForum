@@ -23,7 +23,7 @@ builder.Services.AddDbContext<QFamilyForumContext>(options =>
 builder.Services.AddServerSideBlazor();
 
 builder.Services.AddScoped<TodoService>();
-builder.Services.AddScoped(possibleWordles);
+builder.Services.AddScoped(typeof(List<string>), provider => possibleWordlesOrNull);
 builder.Services.AddScoped<IGameEngine, GameEngine>();
 builder.Services.AddScoped<IWordleGenerator, WordleGenerator>();
 

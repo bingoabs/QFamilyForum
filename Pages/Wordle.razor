@@ -4,6 +4,11 @@
 
 <h3>Play Wordle</h3>
 
+<span class="game_result_message">猜数字游戏</span>
+<span class="game_result_message"><strong class="text_red">红色</strong>表示数字过大;</span>
+<span class="game_result_message"><strong class="text_green">绿色</strong>表示数字正确;</span>
+<span class="game_result_message"><strong class="text_grey">灰色</strong>表示数字较小</span>
+
 <table class="game-grid">
     @for (int guessIndex = 0; guessIndex < gameEngine.NUMBER_OF_ALLLOWED_GUESSES; guessIndex++)
     {
