@@ -1,0 +1,94 @@
+﻿@page "/mine"
+@inject MineService service;
+
+<PageTitle>Hello, world!</PageTitle>
+
+<div class="alert alert-secondary mt-4">
+    <span class="game_result_message">扫雷游戏</span>
+</div>
+
+<table class="game-grid">
+    @for (int ridx = 0; ridx < boardState.Count; ridx++)
+    {
+        <tr>
+            @for(int cidx = 0; cidx < boardState[ridx].Count; cidx++)
+            {
+                @if(boardState[ridx][cidx].isClicked == false)
+                {
+                    var cellId = ridx * boardState[ridx].Count + cidx;
+                    <td class="game_td_middle" style="background:grey">
+                        <p style="text-align:center" @onclick="@(()=> ClickCell(cellId))">😀</p>
+                    </td>
+                } else
+                {
+                    @if(boardState[ridx][cidx].isMine == true)
+                    {
+                        <td class="game_td_middle" style="background:red">
+                            <p style="text-align:center">💥</p>
+                        </td>
+                    } else
+                    {
+                        <td class="game_td_middle" style="background:lightgreen">
+                            <p style="text-align:center">💣@boardState[ridx][cidx].nearbyMineCount</p>
+                        </td>
+                    }
+                }
+            }
+        </tr>
+    }
+</table>
+
+<table class="game-results">
+    <tr>
+        <td class="enter_guess_column">
+            <button disabled="@isGameOn" class="btn btn-primary" type="button" @onclick="ReStartGame">开始</button>
+        </td>
+    </tr>
+</table>
+
+
+<span class="game_result_message">@Message</span>
+
+<div class="alert alert-secondary mt-4">
+    <span class="oi oi-pencil me-2" aria-hidden="true"></span>
+    <strong>Please enjoy this game! </strong>
+
+    <span class="text-nowrap">
+        If any question, please 
+        <a target="_blank" class="font-weight-bold link-dark" href="https://www.baidu.com/s?wd=%E6%89%AB%E9%9B%B7%E6%B8%B8%E6%88%8F%E7%8E%A9%E6%B3%95">search </a>
+    </span>
+    or tell the creator.
+</div>
+
+@code {
+    private bool isGameOn = false;
+    private string Message = "";
+    private List<List<CellState>> boardState = new List<List<CellState>>();
+    protected override void OnInitialized()
+    {
+        boardState = service.CreateGame();
+        isGameOn = true;
+    }
+    private void ReStartGame()
+    {
+        boardState = service.CreateGame();
+        isGameOn = true;
+    }
+    private void ClickCell(int idx)
+    {
+        var state = service.UpdateClickCell(idx);
+        if (state == State.Success)
+        {
+            isGameOn = false;
+            Message = "恭喜！你胜利了！";
+        } else if(state == State.Failure)
+        {
+            isGameOn = false;
+            Message = "再试一试";
+        } else
+        {
+            isGameOn = true;
+            Message = "请继续进行";
+        }
+    }
+}

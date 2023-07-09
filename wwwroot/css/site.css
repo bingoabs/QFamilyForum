@@ -113,3 +113,9 @@ strong.text_green {
 strong.text_purple {
     color: purple;
 }
+
+td.game_td_middle {
+    border: 4px solid black;
+    border-color: inherit;
+    border-style: solid;
+}

@@ -26,6 +26,7 @@ builder.Services.AddScoped<TodoService>();
 builder.Services.AddScoped(typeof(List<string>), provider => possibleWordlesOrNull);
 builder.Services.AddScoped<IGameEngine, GameEngine>();
 builder.Services.AddScoped<IWordleGenerator, WordleGenerator>();
+builder.Services.AddScoped<MineService>();
 
 var app = builder.Build();
 
