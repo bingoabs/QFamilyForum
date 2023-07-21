@@ -1,38 +1,35 @@
 ﻿@if(IsLeft)
 {
-    <div class="outContainer">
-        <div class="left">
-            <div class="faceImg">
-                <img src="@IconPath" />
-            </div>
-        </div>
-        <div class="right">
-            <div class="messContent">
-                <span class="contentDetail">@TextContent</span><br>
-            </div>
+    <!-- 左边 -->
+    <div class="chat_left clearfix">
+        <div class="chat_left_item_1 ">@Name</div>
+        <div class="chat_left_item_2">
+            <div class="chat_time">@InsertedAt</div>
+            <div class="chat_left_content">@Text</div>
         </div>
     </div>
 } else
 {
-    <div class="outContainer messInRight">
-        <div class="right">
-            <div class="messContent">
-                <span class="contentDetail">@TextContent</span>
-            </div>
-        </div>
-        <div class="left">
-            <div class="faceImg faceImgInRight">
-                <img src="@IconPath" />
-            </div>
+    <!--右边 -->
+    <div class="chat_right">
+        <div class="chat_right_item_1 ">@Name</div>
+        <div class="chat_right_item_2 ">
+            <div class="chat_right_time">@InsertedAt</div>
+            <div class="chat_right_content">@Text</div>
         </div>
     </div>
 }
 
+
+
+
 @code {
     [Parameter]
-    public string TextContent { get; set; }
+    public string Name { get; set; }
     [Parameter]
-    public string IconPath { get; set; }
+    public string Text { get; set; }
+    [Parameter]
+    public string InsertedAt { get; set; }
     [Parameter]
     public bool IsLeft { get; set; }
 }
