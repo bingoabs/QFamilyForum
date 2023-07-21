@@ -30,5 +30,12 @@
     </div>
 
     <script src="_framework/blazor.server.js"></script>
+    <script>
+        function ScrollToBottom() {
+            var p = document.getElementById("chat_middle_item");
+            p.scrollTop = p.scrollHeight;
+            return;
+        }
+    </script>
 </body>
 </html>

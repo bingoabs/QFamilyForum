@@ -1,0 +1,86 @@
+﻿@page "/talker"
+@inject IJSRuntime JS
+@inject ITalker Service
+
+<div class="chat_commento">
+    <!-- top -->
+    <div class="chat_top">
+        @Guest.Name
+    </div>
+    <!-- line -->
+    <div class="line"></div>
+    <!-- middle -->
+    <div class="chat_middle" id="chat_middle_item">
+        @foreach(ChatRecord record in Records)
+        {
+            var name = GetNameById(record.SenderId);
+            var isGuest = IsGuest(record.SenderId, Guest.Id);
+            var datetime = GetUtcDate(record.InsertedAt);
+            <ChatEntry Name="@name" InsertedAt="@datetime" Text="@record.Text" IsGuest="@isGuest" />
+        }
+    </div>
+    <!-- line -->
+    <div class="line"></div>
+    <!-- foot -->
+    <div class="chat_foot">
+        <!-- context -->
+        <textarea @bind="@Message" class="chat_context" id="chat_context_item" cols="30" rows="10" placeholder="请输入"></textarea>
+        <div class="chat_commit" id="button" @onclick="@ClickHandler">发送</div>
+    </div>
+</div>
+
+@code {
+    //[Parameter]
+    //public ITalker Service { get; set; }
+    public List<ChatRecord> Records { get; set; }
+    public string Message { get; set; }
+    private User Master { get; set; }
+    private User Guest { get; set; }
+    protected override void OnInitialized()
+    {
+        Master = Service.GetMaster();
+        Guest = Service.GetGuest();
+        Records = Service.GetRecords();
+    }
+    public async void ClickHandler(object obj)
+    {
+        Service.AddMessage(Message);
+        Message = string.Empty;
+        Records = Service.GetRecords();
+        await JS.InvokeAsync<object>("ScrollToBottom");
+        StateHasChanged();
+    }
+    private string GetNameById(long id)
+    {
+        return Service.GetUserNameById(id);
+    }
+    private bool IsGuest(long senderId, long guestId)
+    {
+        return senderId == guestId;
+    }
+    protected string GetUtcDate(long datetime)
+    {
+        DateTime dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+        dateTime = dateTime.AddSeconds(datetime).ToLocalTime();
+        var now = DateTime.Now;
+        TimeSpan diff = now - dateTime;
+        string result = string.Empty;
+        if (diff.TotalDays > 1)
+        {
+            result = dateTime.ToString("yyyy-MM-dd");
+        }
+        else if (diff.TotalHours > 1)
+        {
+            result = $"{diff.Hours} hours ago";
+        }
+        else if (diff.TotalMinutes > 1)
+        {
+            result = $"{diff.Minutes} minutes ago";
+        }
+        else
+        {
+            result = $"{diff.Seconds} seconds ago";
+        }
+        return result;
+    }
+}
