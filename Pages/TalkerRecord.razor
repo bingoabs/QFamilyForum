@@ -1,0 +1,38 @@
+﻿@if(IsLeft)
+{
+    <div class="outContainer">
+        <div class="left">
+            <div class="faceImg">
+                <img src="@IconPath" />
+            </div>
+        </div>
+        <div class="right">
+            <div class="messContent">
+                <span class="contentDetail">@TextContent</span><br>
+            </div>
+        </div>
+    </div>
+} else
+{
+    <div class="outContainer messInRight">
+        <div class="right">
+            <div class="messContent">
+                <span class="contentDetail">@TextContent</span>
+            </div>
+        </div>
+        <div class="left">
+            <div class="faceImg faceImgInRight">
+                <img src="@IconPath" />
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string TextContent { get; set; }
+    [Parameter]
+    public string IconPath { get; set; }
+    [Parameter]
+    public bool IsLeft { get; set; }
+}

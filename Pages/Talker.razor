@@ -1,0 +1,15 @@
+﻿@page "/talker"
+
+<div class="topContainer">
+    <TalkerRecord TextContent="test" IconPath="ava1.png" IsLeft="true" />
+    <TalkerRecord TextContent="test" IconPath="ava2.png" IsLeft="false" />
+</div>
+
+@code {
+    [Parameter]
+    public ITalker Service { get; set; }
+    [Parameter]
+    public long LeftId { get; set; }
+    [Parameter]
+    public long RightId { get; set; }
+}
