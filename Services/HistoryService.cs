@@ -5,15 +5,13 @@ namespace QFamilyForum.Services
 {
     public class HistoryService
     {
-        private readonly LiteDatabase db;
+        private readonly ILiteCollection<HistoryRecord> col;
         public HistoryService()
         {
-            db = new LiteDatabase(@"MyData.db");
+            col = Constant.HistoryCollection;
         }
         public List<HistoryRecord> GetHistoryRecords() 
         {
-            var col = db.GetCollection<HistoryRecord>("historyRecords");
-
             // Create your new customer instance
             var record = new HistoryRecord
             {
